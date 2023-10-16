@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+
+<head>
+    <html lang="en">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小小化学家</title>
+    <style>
+        /* CSS部分中的样式 */
+        /* 居中按钮 */
+        .custom-button {
+            background-color: #007BFF;
+            color: #FFFFFF;
+            border: none;
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+            display: block;
+            /* 将按钮显示为块级元素 */
+            margin: 0 auto;
+            /* 使用 margin 属性水平居中 */
+            text-align: center;
+            /* 文本居中 */
+        }
+
+        .custom-button:hover {
+            background-color: #0056b3;
+        }
+
+
+        #container {
+            width: 100%;
+            /* 设置宽度为100%，占满整个窗口宽度 */
+            height: 60vh;
+            /* 设置高度为窗口高度的60% */
+            position: relative;
+            border: 1px solid black;
+            z-index: 50;
+        }
+
+
+        .draggable {
+            width: 50px;
+            height: 50px;
+            border-radius: 25px;
+            position: absolute;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            z-index: 100;
+        }
+
+        #drawingCanvas {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 90;
+        }
+
+        .source {
+            position: fixed;
+            bottom: 10px;
+        }
+
+        #manualModal {
+            display: none;
+            position: fixed;
+            top: 10%;
+            left: 10%;
+            width: 80%;
+            height: 80%;
+            background-color: white;
+            border: 1px solid black;
+            overflow: auto;
+            z-index: 1000;
+        }
+
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            text-align: center;
+            /* 文本居中 */
+        }
+
+        #H {
+            background-color: red;
+        }
+
+        #C {
+            background-color: grey;
+        }
+
+        #N {
+            background-color: blue;
+        }
+
+        #O {
+            background-color: green;
+        }
+
+        #Na {
+            background-color: yellow;
+        }
+
+        #Cl {
+            background-color: purple;
+        }
+
+        #He {
+            background-color: lightpink;
+        }
+
+        #Si {
+            background-color: lightblue;
+        }
+
+        #P {
+            background-color: lime;
+        }
+
+        #S {
+            background-color: orange;
+        }
+
+        #Ca {
+            background-color: lightgreen;
+        }
+
+        #K {
+            background-color: lightyellow;
+        }
+
+        #Cu {
+            background-color: brown;
+        }
+
+        #Fe {
+            background-color: greenyellow;
+        }
+
+        #Ag {
+            background-color: silver;
+        }
+
+        #Au {
+            background-color: gold;
+        }
+    </style>
+    <script>
+        let currentIncrement = 0;
+
+        function allowDrop(ev) {
+            ev.preventDefault();
+            connectAtoms();
+        }
+
+        function drag(ev) {
+
+            ev.dataTransfer.setData("atom", ev.target.dataset.uniqueId);
+            ev.dataTransfer.setData("originalX", ev.pageX);  // 使用pageX和pageY
+            ev.dataTransfer.setData("originalY", ev.pageY);
+            console.log("drag:", ev);
+            connectAtoms();
+        }
+
+
+        function drop(ev) {
+            ev.preventDefault();
+            let uniqueID = ev.dataTransfer.getData("atom");
+            let originalX = ev.dataTransfer.getData("originalX");
+            let originalY = ev.dataTransfer.getData("originalY");
+            let atomElement = document.querySelector('[data-unique-id="' + uniqueID + '"]');
+
+            if (originalY > window.innerHeight - 100) {
+                let container = document.getElementById('container'); // 获取父元素 container
+                let newAtom = atomElement.cloneNode(true);
+                newAtom.dataset.uniqueId = newAtom.id + '-' + currentIncrement++;
+
+                // 计算相对于 container 的高度
+                let containerY = container.getBoundingClientRect().top + window.scrollY;
+                newAtom.style.left = (ev.clientX - 25) + 'px';
+                newAtom.style.top = (ev.clientY - 25 - containerY) + 'px'; // 使用 containerY
+
+                newAtom.style.position = 'absolute';
+                newAtom.classList.remove('source');
+                newAtom.onclick = function () {
+                    this.remove();
+                };
+                newAtom.ondragstart = function (event) {
+                    // Your ondragstart logic here...
+                    drag(event)
+                };
+
+
+
+                container.appendChild(newAtom); // 将 newAtom 添加到 container 中
+
+            } else {
+                let container = document.getElementById('container'); // 获取父元素 container
+                let containerY = container.getBoundingClientRect().top + window.scrollY;
+
+                atomElement.style.left = (ev.clientX - atomElement.offsetWidth / 2) + 'px';
+                atomElement.style.top = (ev.clientY - atomElement.offsetHeight / 2 - containerY) + 'px'; // 使用 containerY
+            }
+
+
+
+            connectAtoms();
+            console.log("drop:", ev)
+        }
+
+
+
+        function distanceBetweenElements(el1, el2) {
+            let x1 = el1.offsetLeft + 25;
+            let y1 = el1.offsetTop + 25;
+            let x2 = el2.offsetLeft + 25;
+            let y2 = el2.offsetTop + 25;
+            return Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+        }
+
+        function shouldConnect(el1, el2, maxDistance = 100) {
+            return distanceBetweenElements(el1, el2) <= maxDistance;
+        }
+
+        function connectAtoms() {
+            let canvas = document.getElementById('drawingCanvas');
+            let ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+
+            let Hs = Array.from(document.querySelectorAll('[data-unique-id^="H"]'));
+            let Os = Array.from(document.querySelectorAll('[data-unique-id^="O"]'));
+            let Cs = Array.from(document.querySelectorAll('[data-unique-id^="C"]'));
+            let Ns = Array.from(document.querySelectorAll('[data-unique-id^="N"]'));
+            let Nas = Array.from(document.querySelectorAll('[data-unique-id^="Na"]'));
+            let Cls = Array.from(document.querySelectorAll('[data-unique-id^="Cl"]'));
+            let Hes = Array.from(document.querySelectorAll('[data-unique-id^="He"]'));
+            let Sis = Array.from(document.querySelectorAll('[data-unique-id^="Si"]'));
+            let Ps = Array.from(document.querySelectorAll('[data-unique-id^="P"]'));
+            let Ss = Array.from(document.querySelectorAll('[data-unique-id^="S"]'));
+            let Cas = Array.from(document.querySelectorAll('[data-unique-id^="Ca"]'));
+            let Ks = Array.from(document.querySelectorAll('[data-unique-id^="K"]'));
+            let Cus = Array.from(document.querySelectorAll('[data-unique-id^="Cu"]'));
+            let Fes = Array.from(document.querySelectorAll('[data-unique-id^="Fe"]'));
+            let Ags = Array.from(document.querySelectorAll('[data-unique-id^="Ag"]'));
+            let Aus = Array.from(document.querySelectorAll('[data-unique-id^="Au"]'));
+
+            // H2O2 反应
+            for (let i = 0; i < Os.length; i++) {
+                for (let j = i + 1; j < Os.length; j++) {
+                    let O1 = Os[i];
+                    let O2 = Os[j];
+
+                    let connectedHsForO1 = Hs.filter(H => shouldConnect(H, O1));
+                    let connectedHsForO2 = Hs.filter(H => shouldConnect(H, O2));
+
+                    if (connectedHsForO1.length >= 1 && connectedHsForO2.length >= 1) {
+                        drawConnection(ctx, O1, connectedHsForO1[0]);
+                        drawConnection(ctx, O2, connectedHsForO2[0]);
+
+                        Os.splice(j, 1); // 移除第二个氧原子
+                        break;
+                    }
+                }
+            }
+
+            // H2O 反应
+
+            for (let O of Os) {
+                let connectedHs = Hs.filter(H => shouldConnect(O, H));
+                if (connectedHs.length >= 2) {
+                    drawConnection(ctx, O, connectedHs[0]);
+                    drawConnection(ctx, O, connectedHs[1]);
+                    Hs = Hs.filter(H => !connectedHs.includes(H));
+                }
+            }
+
+            // NH3NO3 反应
+            for (let N1 of Ns) {
+                let connectedHsForN1 = Hs.filter(H => shouldConnect(H, N1));
+
+                if (connectedHsForN1.length >= 3) {
+                    for (let N2 of Ns) {
+                        if (N2 !== N1) {
+                            let connectedHsForN2 = Hs.filter(H => shouldConnect(H, N2));
+                            let connectedOsForN2 = Os.filter(O => shouldConnect(O, N2));
+
+                            if (connectedHsForN2.length >= 1 && connectedOsForN2.length >= 3) {
+                                drawConnection(ctx, N1, connectedHsForN1[0]);
+                                drawConnection(ctx, N1, connectedHsForN1[1]);
+                                drawConnection(ctx, N1, connectedHsForN1[2]);
+                                Hs = Hs.filter(H => !connectedHsForN1.includes(H));
+
+                                drawConnection(ctx, N2, connectedHsForN2[0]);
+                                drawConnection(ctx, N2, connectedOsForN2[0]);
+                                drawConnection(ctx, N2, connectedOsForN2[1]);
+                                drawConnection(ctx, N2, connectedOsForN2[2]);
+                                Hs = Hs.filter(H => H !== connectedHsForN2[0]);
+                                Os = Os.filter(O => !connectedOsForN2.includes(O));
+
+                                drawConnection(ctx, N1, N2);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // CuSO4 反应
+            for (let Cu of Cus) {
+                let connectedS = Ss.find(S => shouldConnect(Cu, S));
+                let connectedOs = Os.filter(O => shouldConnect(Cu, O));
+                if (connectedS && connectedOs.length >= 4) {
+                    drawConnection(ctx, Cu, connectedS);
+                    drawConnection(ctx, Cu, connectedOs[0]);
+                    drawConnection(ctx, Cu, connectedOs[1]);
+                    drawConnection(ctx, Cu, connectedOs[2]);
+                    drawConnection(ctx, Cu, connectedOs[3]);
+                    Ss = Ss.filter(S => S !== connectedS);
+                    Os = Os.filter(O => !connectedOs.includes(O));
+                }
+            }
+
+            // CO2 反应
+            for (let C of Cs) {
+                let connectedOs = Os.filter(O => shouldConnect(C, O));
+                if (connectedOs.length >= 2) {
+                    drawConnection(ctx, C, connectedOs[0]);
+                    drawConnection(ctx, C, connectedOs[1]);
+                    Os = Os.filter(O => !connectedOs.includes(O));
+                }
+            }
+
+            // NH3 反应
+            for (let N of Ns) {
+                let connectedHs = Hs.filter(H => shouldConnect(N, H));
+                if (connectedHs.length >= 3) {
+                    drawConnection(ctx, N, connectedHs[0]);
+                    drawConnection(ctx, N, connectedHs[1]);
+                    drawConnection(ctx, N, connectedHs[2]);
+                    Hs = Hs.filter(H => !connectedHs.includes(H));
+                }
+            }
+
+            // NO3 反应
+            for (let N of Ns) {
+                let connectedOs = Os.filter(O => shouldConnect(N, O));
+                if (connectedOs.length >= 3) {
+                    drawConnection(ctx, N, connectedOs[0]);
+                    drawConnection(ctx, N, connectedOs[1]);
+                    drawConnection(ctx, N, connectedOs[2]);
+                    Os = Os.filter(O => !connectedOs.includes(O));
+                }
+            }
+
+            // CH4 反应
+            for (let C of Cs) {
+                let connectedHs = Hs.filter(H => shouldConnect(C, H));
+                if (connectedHs.length >= 4) {
+                    drawConnection(ctx, C, connectedHs[0]);
+                    drawConnection(ctx, C, connectedHs[1]);
+                    drawConnection(ctx, C, connectedHs[2]);
+                    drawConnection(ctx, C, connectedHs[3]);
+                    Hs = Hs.filter(H => !connectedHs.includes(H));
+                }
+            }
+
+            // NaCl 反应
+            for (let Na of Nas) {
+                let connectedCl = Cls.find(Cl => shouldConnect(Na, Cl));
+                if (connectedCl) {
+                    drawConnection(ctx, Na, connectedCl);
+                    Cls = Cls.filter(Cl => Cl !== connectedCl);
+                }
+            }
+
+            // CaO 反应
+            for (let Ca of Cas) {
+                let connectedO = Os.find(O => shouldConnect(Ca, O));
+                if (connectedO) {
+                    drawConnection(ctx, Ca, connectedO);
+                    Os = Os.filter(O => O !== connectedO);
+                }
+            }
+        }
+
+        function drawConnection(ctx, element1, element2) {
+            let rect1 = element1.getBoundingClientRect();
+            let x1 = rect1.left + rect1.width / 2 ; // 加上页面水平滚动的偏移
+            let y1 = rect1.top + rect1.height / 2 ; // 加上页面垂直滚动的偏移
+
+            let rect2 = element2.getBoundingClientRect();
+            let x2 = rect2.left + rect2.width / 2 ; // 加上页面水平滚动的偏移
+            let y2 = rect2.top + rect2.height / 2 ; // 加上页面垂直滚动的偏移
+
+            // 获取容器元素
+            let container = document.getElementById('container');
+
+            // 计算窗口的60%高度
+            let windowHeight = window.innerHeight;
+            let containerHeight = windowHeight * 0.6+"px";
+
+
+            // 设置容器的宽度为窗口的100%
+            container.style.width = window.innerWidth + 'px';
+
+            if (x1 < 0 || x1 > window.innerWidth || y1 < 0 || y1 > containerHeight || x2 < 0 || x2 > window.innerWidth || y2 < 0 || y2 > containerHeight) {
+                return;
+            }
+
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            // 获取容器元素
+            let container = document.getElementById('container');
+
+            // 计算窗口的60%高度
+            let windowHeight = window.innerHeight;
+            let containerHeight = windowHeight * 0.6;
+
+            // 设置容器的高度为窗口的60%（但不超过窗口高度）
+            container.style.height = Math.min(containerHeight, windowHeight) + 'px';
+
+            // 设置容器的宽度为窗口的100%
+            container.style.width = window.innerWidth + 'px'; // 添加单位 'px'
+            let atoms = document.querySelectorAll('.draggable');
+            atoms.forEach(atom => {
+                atom.dataset.uniqueId = atom.id;
+            });
+
+            connectAtoms();
+        });
+
+        function showModal() {
+            document.getElementById('manualModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('manualModal').style.display = 'none';
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            document.getElementById('showManualBtn').addEventListener('click', showModal);
+        });
+
+
+
+    </script>
+</head>
+
+<body>
+    <div>
+        <h2>欢迎来到小小化学家的世界！</h2>
+    </div>
+    <div>
+        <h4>在这里，你可以结合不同的原子，发生不同的化学反应！</h4>
+    </div>
+
+    <div id="container" ondrop="drop(event)" ondragover="allowDrop(event)">
+        <canvas id="drawingCanvas"></canvas>
+    </div>
+
+    <div class="draggable source" id="H" data-unique-id="H" draggable="true" ondragstart="drag(event)"
+        style="left:10px;">H</div>
+    <div class="draggable source" id="O" data-unique-id="O" draggable="true" ondragstart="drag(event)"
+        style="left:70px;">O</div>
+    <div class="draggable source" id="C" data-unique-id="C" draggable="true" ondragstart="drag(event)"
+        style="left:130px;">C</div>
+    <div class="draggable source" id="N" data-unique-id="N" draggable="true" ondragstart="drag(event)"
+        style="left:190px;">N</div>
+    <div class="draggable source" id="Na" data-unique-id="Na" draggable="true" ondragstart="drag(event)"
+        style="left:250px;">Na</div>
+    <div class="draggable source" id="Cl" data-unique-id="Cl" draggable="true" ondragstart="drag(event)"
+        style="left:310px;">Cl</div>
+    <div class="draggable source" id="He" data-unique-id="He" draggable="true" ondragstart="drag(event)"
+        style="left:370px;">He</div>
+    <div class="draggable source" id="Si" data-unique-id="Si" draggable="true" ondragstart="drag(event)"
+        style="left:430px;">Si</div>
+    <div class="draggable source" id="P" data-unique-id="P" draggable="true" ondragstart="drag(event)"
+        style="left:490px;">P</div>
+    <div class="draggable source" id="S" data-unique-id="S" draggable="true" ondragstart="drag(event)"
+        style="left:550px;">S</div>
+    <div class="draggable source" id="Ca" data-unique-id="Ca" draggable="true" ondragstart="drag(event)"
+        style="left:610px;">Ca</div>
+    <div class="draggable source" id="K" data-unique-id="K" draggable="true" ondragstart="drag(event)"
+        style="left:670px;">K</div>
+    <div class="draggable source" id="Cu" data-unique-id="Cu" draggable="true" ondragstart="drag(event)"
+        style="left:730px;">Cu</div>
+    <div class="draggable source" id="Fe" data-unique-id="Fe" draggable="true" ondragstart="drag(event)"
+        style="left:790px;">Fe</div>
+    <div class="draggable source" id="Ag" data-unique-id="Ag" draggable="true" ondragstart="drag(event)"
+        style="left:850px;">Ag</div>
+    <div class="draggable source" id="Au" data-unique-id="Au" draggable="true" ondragstart="drag(event)"
+        style="left:910px;">Au</div>
+
+    <!-- 添加一个查看说明书的按钮 -->
+    <button id="showManualBtn" class="custom-button">查看说明书</button>
+
+    <!-- 模态框的结构 -->
+    <div id="manualModal"
+        style="display:none; position: fixed; top: 10%; left: 10%; width: 80%; height: 80%; background-color: white; border: 1px solid black; overflow: auto; z-index: 50;">
+
+        <h2>说明书</h2>
+        <h4>这些元素你一定用得上</h4>
+        <ul>
+            <li>H(氢)</li>
+            <li>O(氧)</li>
+            <li>C(碳)</li>
+            <li>N(氮)</li>
+            <li>Na(钠)</li>
+            <li>Cl(氯)</li>
+            <li>He(氦)</li>
+            <li>Si(硅)</li>
+            <li>P(磷)</li>
+            <li>S(硫)</li>
+            <li>Ca(钙)</li>
+            <li>K(钾)</li>
+            <li>Cu(铜)</li>
+            <li>Fe(铁)</li>
+            <li>Ag(银)</li>
+            <li>Au(金)</li>
+        </ul>
+        <h4>你可以用以下几种有限的组合，创造出无限的可能</h4>
+        <ul>
+            <li>2个H(氢)和1个O(氧)能合成1个H<sub>2</sub>O(水)</li>
+            <li>1个C(碳)和2个O(氧)能合成1个CO<sub>2</sub>(二氧化碳)</li>
+            <li>3个H(氢)和1个N(氮)能合成1个NH<sub>3</sub>(氨)</li>
+            <li>3个O(氧)和1个N(氮)能合成1个NO<sub>3</sub>(硝酸根)</li>
+            <li>4个H(氢)和1个C(碳)能合成1个CH<sub>4</sub>(甲烷)</li>
+            <li>1个Na(钠)和1个Cl(氯)能合成1个NaCl(氯化钠)</li>
+            <li>2个H(氢)和2个O(氧)能合成1个H<sub>2</sub>O<sub>2</sub>(双氧水)</li>
+            <li>1个Ca(钙)和1个O(氧)能合成1个CaO(氧化钙)</li>
+            <li>1个Cu(铜)和1个S(硫)和4个O(氧)能合成1个CuSO<sub>4</sub>(硫酸铜)</li>
+            <li>1个NH<sub>3</sub>(氨)和个1NO<sub>3</sub>(硝酸根)能合成1个NH<sub>3</sub>NO<sub>3</sub>(氨硝酸)</li>
+        </ul>
+        <button onclick="closeModal()" class="custom-button">关闭说明书</button>
+    </div>
+</body>
+
+</html>
