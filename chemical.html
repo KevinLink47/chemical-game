@@ -42,9 +42,9 @@
 
 
         .draggable {
-            width: 50px;
-            height: 50px;
-            border-radius: 25px;
+            width: 60px;
+            height: 60px;
+            border-radius: 30px;
             position: absolute;
             cursor: pointer;
             display: flex;
@@ -56,11 +56,11 @@
 
         #drawingCanvas {
             position: absolute;
-            width: 100%;
-            height: 100%;
+            width: 500;
+            height: 1000;
             top: 0;
             left: 0;
-            z-index: 90;
+            z-index: 99;
         }
 
         .source {
@@ -157,7 +157,13 @@
         }
     </style>
     <script>
+        document.addEventListener('DOMContentLoaded', function() {
+        var canvas = document.getElementById('drawingCanvas');
+        canvas.width =1000;
+        canvas.height = 500;})
         let currentIncrement = 0;
+        
+
 
         function allowDrop(ev) {
             ev.preventDefault();
@@ -188,13 +194,15 @@
 
                 // 计算相对于 container 的高度
                 let containerY = container.getBoundingClientRect().top + window.scrollY;
-                newAtom.style.left = (ev.clientX - 25) + 'px';
-                newAtom.style.top = (ev.clientY - 25 - containerY) + 'px'; // 使用 containerY
+                newAtom.style.left = (ev.clientX - 30) + 'px';
+                newAtom.style.top = (ev.clientY - 30 - containerY) + 'px'; // 使用 containerY
 
                 newAtom.style.position = 'absolute';
                 newAtom.classList.remove('source');
                 newAtom.onclick = function () {
                     this.remove();
+                    connectAtoms();
+                    console.log("remove:", ev)
                 };
                 newAtom.ondragstart = function (event) {
                     // Your ondragstart logic here...
@@ -222,14 +230,20 @@
 
 
         function distanceBetweenElements(el1, el2) {
-            let x1 = el1.offsetLeft + 25;
-            let y1 = el1.offsetTop + 25;
-            let x2 = el2.offsetLeft + 25;
-            let y2 = el2.offsetTop + 25;
-            return Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
-        }
+    let rect1 = el1.getBoundingClientRect();
+    let rect2 = el2.getBoundingClientRect();
 
-        function shouldConnect(el1, el2, maxDistance = 100) {
+    let x1 = rect1.left + rect1.width / 2 + window.pageXOffset;
+    let y1 = rect1.top + rect1.height / 2 + window.pageYOffset;
+
+    let x2 = rect2.left + rect2.width / 2 + window.pageXOffset;
+    let y2 = rect2.top + rect2.height / 2 + window.pageYOffset;
+
+    return Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+}
+
+
+        function shouldConnect(el1, el2, maxDistance = 200) {
             return distanceBetweenElements(el1, el2) <= maxDistance;
         }
 
@@ -284,6 +298,7 @@
                     drawConnection(ctx, O, connectedHs[1]);
                     Hs = Hs.filter(H => !connectedHs.includes(H));
                 }
+                
             }
 
             // NH3NO3 反应
@@ -397,49 +412,37 @@
 
         function drawConnection(ctx, element1, element2) {
             let rect1 = element1.getBoundingClientRect();
-            let x1 = rect1.left + rect1.width / 2 ; // 加上页面水平滚动的偏移
-            let y1 = rect1.top + rect1.height / 2 ; // 加上页面垂直滚动的偏移
-
             let rect2 = element2.getBoundingClientRect();
-            let x2 = rect2.left + rect2.width / 2 ; // 加上页面水平滚动的偏移
-            let y2 = rect2.top + rect2.height / 2 ; // 加上页面垂直滚动的偏移
+            let x1 = rect1.left + rect1.width / 2 + window.pageXOffset;
+            let y1 = rect1.top + rect1.height / 2 + window.pageYOffset;
 
-            // 获取容器元素
-            let container = document.getElementById('container');
+            let x2 = rect2.left + rect2.width / 2 + window.pageXOffset;
+            let y2 = rect2.top + rect2.height / 2 + window.pageYOffset;
+            
+            
+            let containerHeight = 500;
+            
 
-            // 计算窗口的60%高度
-            let windowHeight = window.innerHeight;
-            let containerHeight = windowHeight * 0.6+"px";
-
-
-            // 设置容器的宽度为窗口的100%
-            container.style.width = window.innerWidth + 'px';
-
-            if (x1 < 0 || x1 > window.innerWidth || y1 < 0 || y1 > containerHeight || x2 < 0 || x2 > window.innerWidth || y2 < 0 || y2 > containerHeight) {
+            
+            if (x1 < 0 || x1 > 1000 || y1 < 0 || y1 > containerHeight || x2 < 0 || x2 > 1000 || y2 < 0 || y2 > containerHeight) {
                 return;
             }
 
             ctx.beginPath();
             ctx.moveTo(x1, y1);
-            ctx.lineTo(x2, y2);
             ctx.strokeStyle = 'black';
+            ctx.lineTo(x2, y2);
+            console.log("x1:"+x1+"y1:"+y1);
+            console.log("x2:"+x2+"y2:"+y2);
             ctx.lineWidth = 2;
             ctx.stroke();
+            console.log("draw");
+            
         }
 
         document.addEventListener("DOMContentLoaded", function () {
             // 获取容器元素
             let container = document.getElementById('container');
-
-            // 计算窗口的60%高度
-            let windowHeight = window.innerHeight;
-            let containerHeight = windowHeight * 0.6;
-
-            // 设置容器的高度为窗口的60%（但不超过窗口高度）
-            container.style.height = Math.min(containerHeight, windowHeight) + 'px';
-
-            // 设置容器的宽度为窗口的100%
-            container.style.width = window.innerWidth + 'px'; // 添加单位 'px'
             let atoms = document.querySelectorAll('.draggable');
             atoms.forEach(atom => {
                 atom.dataset.uniqueId = atom.id;
@@ -466,49 +469,50 @@
 </head>
 
 <body>
-    <div>
+    <!-- <div>
         <h2>欢迎来到小小化学家的世界！</h2>
     </div>
     <div>
         <h4>在这里，你可以结合不同的原子，发生不同的化学反应！</h4>
-    </div>
+    </div> -->
 
     <div id="container" ondrop="drop(event)" ondragover="allowDrop(event)">
-        <canvas id="drawingCanvas"></canvas>
+        <canvas id="drawingCanvas"  ></canvas>
     </div>
 
     <div class="draggable source" id="H" data-unique-id="H" draggable="true" ondragstart="drag(event)"
-        style="left:10px;">H</div>
+        style="left:0px;">H(氢)</div>
     <div class="draggable source" id="O" data-unique-id="O" draggable="true" ondragstart="drag(event)"
-        style="left:70px;">O</div>
+        style="left:80px;">O(氧)</div>
     <div class="draggable source" id="C" data-unique-id="C" draggable="true" ondragstart="drag(event)"
-        style="left:130px;">C</div>
+        style="left:160px;">C(碳)</div>
     <div class="draggable source" id="N" data-unique-id="N" draggable="true" ondragstart="drag(event)"
-        style="left:190px;">N</div>
+        style="left:240px;">N(氮)</div>
     <div class="draggable source" id="Na" data-unique-id="Na" draggable="true" ondragstart="drag(event)"
-        style="left:250px;">Na</div>
+        style="left:320px;">Na(钠)</div>
     <div class="draggable source" id="Cl" data-unique-id="Cl" draggable="true" ondragstart="drag(event)"
-        style="left:310px;">Cl</div>
+        style="left:400px;">Cl(氯)</div>
     <div class="draggable source" id="He" data-unique-id="He" draggable="true" ondragstart="drag(event)"
-        style="left:370px;">He</div>
+        style="left:480px;">He(氦)</div>
     <div class="draggable source" id="Si" data-unique-id="Si" draggable="true" ondragstart="drag(event)"
-        style="left:430px;">Si</div>
+        style="left:560px;">Si(硅)</div>
     <div class="draggable source" id="P" data-unique-id="P" draggable="true" ondragstart="drag(event)"
-        style="left:490px;">P</div>
+        style="left:640px;">P(磷)</div>
     <div class="draggable source" id="S" data-unique-id="S" draggable="true" ondragstart="drag(event)"
-        style="left:550px;">S</div>
+        style="left:720px;">S(硫)</div>
     <div class="draggable source" id="Ca" data-unique-id="Ca" draggable="true" ondragstart="drag(event)"
-        style="left:610px;">Ca</div>
+        style="left:800px;">Ca(钙)</div>
     <div class="draggable source" id="K" data-unique-id="K" draggable="true" ondragstart="drag(event)"
-        style="left:670px;">K</div>
+        style="left:880px;">K(钾)</div>
     <div class="draggable source" id="Cu" data-unique-id="Cu" draggable="true" ondragstart="drag(event)"
-        style="left:730px;">Cu</div>
+        style="left:960px;">Cu(铜)</div>
     <div class="draggable source" id="Fe" data-unique-id="Fe" draggable="true" ondragstart="drag(event)"
-        style="left:790px;">Fe</div>
+        style="left:1040px;">Fe(铁)</div>
     <div class="draggable source" id="Ag" data-unique-id="Ag" draggable="true" ondragstart="drag(event)"
-        style="left:850px;">Ag</div>
+        style="left:1120px;">Ag(银)</div>
     <div class="draggable source" id="Au" data-unique-id="Au" draggable="true" ondragstart="drag(event)"
-        style="left:910px;">Au</div>
+        style="left:1200px;">Au(金)</div>
+
 
     <!-- 添加一个查看说明书的按钮 -->
     <button id="showManualBtn" class="custom-button">查看说明书</button>
