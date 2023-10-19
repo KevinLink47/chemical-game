@@ -273,36 +273,9 @@
             let Ags = Array.from(document.querySelectorAll('[data-unique-id^="Ag"]'));
             let Aus = Array.from(document.querySelectorAll('[data-unique-id^="Au"]'));
 
-            // H2O2 反应
-            for (let i = 0; i < Os.length; i++) {
-                for (let j = i + 1; j < Os.length; j++) {
-                    let O1 = Os[i];
-                    let O2 = Os[j];
+            
 
-                    let connectedHsForO1 = Hs.filter(H => shouldConnect(H, O1));
-                    let connectedHsForO2 = Hs.filter(H => shouldConnect(H, O2));
-
-                    if (connectedHsForO1.length >= 1 && connectedHsForO2.length >= 1) {
-                        drawConnection(ctx, O1, connectedHsForO1[0]);
-                        drawConnection(ctx, O2, connectedHsForO2[0]);
-
-                        Os.splice(j, 1); // 移除第二个氧原子
-                        break;
-                    }
-                }
-            }
-
-            // H2O 反应
-
-            for (let O of Os) {
-                let connectedHs = Hs.filter(H => shouldConnect(O, H));
-                if (connectedHs.length >= 2) {
-                    drawConnection(ctx, O, connectedHs[0]);
-                    drawConnection(ctx, O, connectedHs[1]);
-                    Hs = Hs.filter(H => !connectedHs.includes(H));
-                }
-                
-            }
+            
 
             // NH3NO3 反应
             for (let N1 of Ns) {
@@ -334,6 +307,70 @@
                     }
                 }
             }
+            // CH4 反应
+            for (let C of Cs) {
+                let connectedHs = Hs.filter(H => shouldConnect(C, H));
+                if (connectedHs.length >= 4) {
+                    drawConnection(ctx, C, connectedHs[0]);
+                    drawConnection(ctx, C, connectedHs[1]);
+                    drawConnection(ctx, C, connectedHs[2]);
+                    drawConnection(ctx, C, connectedHs[3]);
+                    Hs = Hs.filter(H => !connectedHs.includes(H));
+                }
+            }
+            // NH3 反应
+            for (let N of Ns) {
+                let connectedHs = Hs.filter(H => shouldConnect(N, H));
+                if (connectedHs.length >= 3) {
+                    drawConnection(ctx, N, connectedHs[0]);
+                    drawConnection(ctx, N, connectedHs[1]);
+                    drawConnection(ctx, N, connectedHs[2]);
+                    Hs = Hs.filter(H => !connectedHs.includes(H));
+                }
+            }
+
+            // NO3 反应
+            for (let N of Ns) {
+                let connectedOs = Os.filter(O => shouldConnect(N, O));
+                if (connectedOs.length >= 3) {
+                    drawConnection(ctx, N, connectedOs[0]);
+                    drawConnection(ctx, N, connectedOs[1]);
+                    drawConnection(ctx, N, connectedOs[2]);
+                    Os = Os.filter(O => !connectedOs.includes(O));
+                }
+            }
+
+            
+            // H2O2 反应
+            for (let i = 0; i < Os.length; i++) {
+                for (let j = i + 1; j < Os.length; j++) {
+                    let O1 = Os[i];
+                    let O2 = Os[j];
+
+                    let connectedHsForO1 = Hs.filter(H => shouldConnect(H, O1));
+                    let connectedHsForO2 = Hs.filter(H => shouldConnect(H, O2));
+
+                    if (connectedHsForO1.length >= 1 && connectedHsForO2.length >= 1) {
+                        drawConnection(ctx, O1, connectedHsForO1[0]);
+                        drawConnection(ctx, O2, connectedHsForO2[0]);
+
+                        Os.splice(j, 1); // 移除第二个氧原子
+                        break;
+                    }
+                }
+            }
+
+            // H2O 反应
+
+            for (let O of Os) {
+                let connectedHs = Hs.filter(H => shouldConnect(O, H));
+                if (connectedHs.length >= 2) {
+                    drawConnection(ctx, O, connectedHs[0]);
+                    drawConnection(ctx, O, connectedHs[1]);
+                    Hs = Hs.filter(H => !connectedHs.includes(H));
+                }
+                
+            }
 
             // CuSO4 反应
             for (let Cu of Cus) {
@@ -360,39 +397,7 @@
                 }
             }
 
-            // NH3 反应
-            for (let N of Ns) {
-                let connectedHs = Hs.filter(H => shouldConnect(N, H));
-                if (connectedHs.length >= 3) {
-                    drawConnection(ctx, N, connectedHs[0]);
-                    drawConnection(ctx, N, connectedHs[1]);
-                    drawConnection(ctx, N, connectedHs[2]);
-                    Hs = Hs.filter(H => !connectedHs.includes(H));
-                }
-            }
-
-            // NO3 反应
-            for (let N of Ns) {
-                let connectedOs = Os.filter(O => shouldConnect(N, O));
-                if (connectedOs.length >= 3) {
-                    drawConnection(ctx, N, connectedOs[0]);
-                    drawConnection(ctx, N, connectedOs[1]);
-                    drawConnection(ctx, N, connectedOs[2]);
-                    Os = Os.filter(O => !connectedOs.includes(O));
-                }
-            }
-
-            // CH4 反应
-            for (let C of Cs) {
-                let connectedHs = Hs.filter(H => shouldConnect(C, H));
-                if (connectedHs.length >= 4) {
-                    drawConnection(ctx, C, connectedHs[0]);
-                    drawConnection(ctx, C, connectedHs[1]);
-                    drawConnection(ctx, C, connectedHs[2]);
-                    drawConnection(ctx, C, connectedHs[3]);
-                    Hs = Hs.filter(H => !connectedHs.includes(H));
-                }
-            }
+            
 
             // NaCl 反应
             for (let Na of Nas) {
