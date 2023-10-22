@@ -287,10 +287,11 @@
                             let connectedHsForN2 = Hs.filter(H => shouldConnect(H, N2));
                             let connectedOsForN2 = Os.filter(O => shouldConnect(O, N2));
 
-                            if (connectedHsForN2.length >= 1 && connectedOsForN2.length >= 3) {
+                            if (connectedHsForN2.length >= 1 && connectedOsForN2.length >= 4) {
                                 drawConnection(ctx, N1, connectedHsForN1[0]);
                                 drawConnection(ctx, N1, connectedHsForN1[1]);
                                 drawConnection(ctx, N1, connectedHsForN1[2]);
+                                drawConnection(ctx, N1, connectedHsForN1[3]);
                                 Hs = Hs.filter(H => !connectedHsForN1.includes(H));
 
                                 drawConnection(ctx, N2, connectedHsForN2[0]);
@@ -321,10 +322,11 @@
             // NH3 反应
             for (let N of Ns) {
                 let connectedHs = Hs.filter(H => shouldConnect(N, H));
-                if (connectedHs.length >= 3) {
+                if (connectedHs.length >= 4) {
                     drawConnection(ctx, N, connectedHs[0]);
                     drawConnection(ctx, N, connectedHs[1]);
                     drawConnection(ctx, N, connectedHs[2]);
+                    drawConnection(ctx, N, connectedHs[3]);
                     Hs = Hs.filter(H => !connectedHs.includes(H));
                 }
             }
@@ -553,14 +555,14 @@
         <ul>
             <li>2个H(氢)和1个O(氧)能合成1个H<sub>2</sub>O(水)</li>
             <li>1个C(碳)和2个O(氧)能合成1个CO<sub>2</sub>(二氧化碳)</li>
-            <li>3个H(氢)和1个N(氮)能合成1个NH<sub>3</sub>(氨)</li>
+            <li>4个H(氢)和1个N(氮)能合成1个NH<sub>4</sub>(铵)</li>
             <li>3个O(氧)和1个N(氮)能合成1个NO<sub>3</sub>(硝酸根)</li>
             <li>4个H(氢)和1个C(碳)能合成1个CH<sub>4</sub>(甲烷)</li>
             <li>1个Na(钠)和1个Cl(氯)能合成1个NaCl(氯化钠)</li>
             <li>2个H(氢)和2个O(氧)能合成1个H<sub>2</sub>O<sub>2</sub>(双氧水)</li>
             <li>1个Ca(钙)和1个O(氧)能合成1个CaO(氧化钙)</li>
             <li>1个Cu(铜)和1个S(硫)和4个O(氧)能合成1个CuSO<sub>4</sub>(硫酸铜)</li>
-            <li>1个NH<sub>3</sub>(氨)和个1NO<sub>3</sub>(硝酸根)能合成1个NH<sub>3</sub>NO<sub>3</sub>(氨硝酸)</li>
+            <li>1个NH<sub>4</sub>(氨)和个1NO<sub>3</sub>(硝酸根)能合成1个NH<sub>4</sub>NO<sub>3</sub>(硝酸铵)</li>
         </ul>
         <button onclick="closeModal()" class="custom-button">关闭说明书</button>
     </div>
