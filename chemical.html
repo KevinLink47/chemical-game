@@ -38,6 +38,7 @@
             position: relative;
             border: 1px solid black;
             z-index: 50;
+            display: -webkit-box;
         }
         button{
             z-index: 1000;
@@ -65,7 +66,12 @@
             left: 0;
             z-index: 99;
         }
-
+        #reload_button{
+            margin:4px;
+        }
+        .things{
+            overflow: auto;
+                }
         .source {
             position: fixed;
             bottom: 10px;
@@ -464,6 +470,9 @@
         function showModal() {
             document.getElementById('manualModal').style.display = 'block';
         }
+        function reloading() {
+            document.location.reload()
+        }
 
         function closeModal() {
             document.getElementById('manualModal').style.display = 'none';
@@ -489,7 +498,7 @@
     <div id="container" ondrop="drop(event)" ondragover="allowDrop(event)">
         <canvas id="drawingCanvas"  ></canvas>
     </div>
-
+    <div class="things">
     <div class="draggable source" id="H" data-unique-id="H" draggable="true" ondragstart="drag(event)"
         style="left:0px;">H(氢)</div>
     <div class="draggable source" id="O" data-unique-id="O" draggable="true" ondragstart="drag(event)"
@@ -522,10 +531,10 @@
         style="left:1120px;">Ag(银)</div>
     <div class="draggable source" id="Au" data-unique-id="Au" draggable="true" ondragstart="drag(event)"
         style="left:1200px;">Au(金)</div>
-
-
+    </div>
+    <button type="button" onclick="reloading()" class="custom-button" id="reload_button">重试一下</button>
     <!-- 添加一个查看说明书的按钮 -->
-    <button id="showManualBtn" class="custom-button">查看说明书</button>
+    <button type="button" id="showManualBtn" class="custom-button">查看说明书</button>
 
     <!-- 模态框的结构 -->
     <div id="manualModal"
@@ -564,7 +573,7 @@
             <li>1个Cu(铜)和1个S(硫)和4个O(氧)能合成1个CuSO<sub>4</sub>(硫酸铜)</li>
             <li>1个NH<sub>4</sub>(氨)和个1NO<sub>3</sub>(硝酸根)能合成1个NH<sub>4</sub>NO<sub>3</sub>(硝酸铵)</li>
         </ul>
-        <button onclick="closeModal()" class="custom-button">关闭说明书</button>
+        <button type="button" onclick="closeModal()" class="custom-button">关闭说明书</button>
     </div>
 </body>
 
